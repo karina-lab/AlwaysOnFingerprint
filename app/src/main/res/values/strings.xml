@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">Always-On Fingerprint</string>
+    <string name="module_description">Enable screen-off fingerprint unlocking for Pixel devices with optical sensors</string>
+</resources>
