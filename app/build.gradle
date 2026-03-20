@@ -10,8 +10,8 @@ android {
         applicationId "org.klab.alwaysonfps"
         minSdk 31
         targetSdk 36
-        versionCode 100
-        versionName "1.0"
+        versionCode 110
+        versionName "1.1"
     }
 
     buildTypes {
