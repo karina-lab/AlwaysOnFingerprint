@@ -14,5 +14,5 @@ Starting with the **Android 16 QPR3** release, Google completely removed the abi
 5. Navigate to *Settings -> Security & Privacy -> Device Unlock -> Fingerprint* and enable **Screen-off Fingerprint Unlock**
 
 ## Compatibility
-- Pixel 6, 6 Pro, 6a, 7, Pro, 7a, 8, 8 Pro, 8a
-- Stock Android 16 QPR3.
+- Pixel 6, 6 Pro, 6a, 7, Pro, 7a, Fold, 8, 8 Pro, 8a
+- Stock Android 16 QPR3
