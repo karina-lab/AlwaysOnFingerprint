@@ -77,14 +77,19 @@ public class AlwaysOnFingerprint implements IXposedHookLoadPackage {
                         @Override
                         protected void afterHookedMethod(MethodHookParam param) throws Throwable {
                             if ((boolean) param.getResult()) return;
+                            int userId = 0;
+                            java.lang.reflect.Method mFace = XposedHelpers.findMethodExactIfExists(param.thisObject.getClass(), "getUserFaceAuthenticated", int.class);
+                            if (mFace != null) {
+                                boolean isFaceAuthenticated = (boolean) mFace.invoke(param.thisObject, userId);
+                                if (isFaceAuthenticated) return;
+                            }
 
                             Context context = (Context) XposedHelpers.getObjectField(param.thisObject, "mContext");
 
                             if (context != null && Settings.Secure.getInt(context.getContentResolver(), "screen_off_udfps_enabled", 0) == 1) {
-                                boolean isDreaming = (boolean) XposedHelpers.callMethod(param.thisObject, "isDreaming");
-                                boolean isScreenOn = (boolean) XposedHelpers.callMethod(param.thisObject, "isScreenOn");
+                                boolean isInteractive = (boolean) XposedHelpers.getBooleanField(param.thisObject, "mDeviceInteractive");
 
-                                if (!isScreenOn || isDreaming) {
+                                if (!isInteractive) {
                                     param.setResult(true);
                                 }
                             }
@@ -93,33 +98,6 @@ public class AlwaysOnFingerprint implements IXposedHookLoadPackage {
             );
         } catch (Throwable t) {
             XposedBridge.log("Failed to hook KeyguardUpdateMonitor: " + t);
-        }
-
-        try {
-            XposedHelpers.findAndHookMethod(
-                    "com.android.systemui.doze.DozeSensors$TriggerSensor",
-                    lpparam.classLoader,
-                    "updateListening",
-                    new XC_MethodHook() {
-                        @Override
-                        protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-                            Object dozeSensors = XposedHelpers.getSurroundingThis(param.thisObject);
-                            if (dozeSensors == null) return;
-                            Context context = (Context) XposedHelpers.getObjectField(dozeSensors, "mContext");
-                            if (context == null) return;
-
-                            if (Settings.Secure.getInt(context.getContentResolver(), "screen_off_udfps_enabled", 0) == 1) {
-                                int pulseReason = XposedHelpers.getIntField(param.thisObject, "mPulseReason");
-                                if (pulseReason == 10) { // 10 = UDFPS Long Press
-                                    XposedHelpers.setBooleanField(param.thisObject, "mConfigured", true);
-                                    XposedHelpers.setBooleanField(param.thisObject, "mRequested", true);
-                                }
-                            }
-                        }
-                    }
-            );
-        } catch (Throwable t) {
-            XposedBridge.log("Failed to hook DozeSensors: " + t);
         }
 
         try {
