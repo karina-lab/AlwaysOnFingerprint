@@ -30,6 +30,7 @@ public class AlwaysOnFingerprint implements IXposedHookLoadPackage {
                         "isScreenOffUnlcokSupported",
                         XC_MethodReplacement.returnConstant(true)
                 );
+                XposedBridge.log("Hooked Settings");
             } catch (Throwable t) {
                 XposedBridge.log("Failed to hook Settings: " + t);
             }
@@ -62,6 +63,7 @@ public class AlwaysOnFingerprint implements IXposedHookLoadPackage {
                     "udfpsLongPressSensorType",
                     XC_MethodReplacement.returnConstant("com.google.sensor.long_press")
             );
+            XposedBridge.log("Hooked AmbientDisplayConfiguration");
         } catch (Throwable t) {
             XposedBridge.log("Failed to hook AmbientDisplayConfiguration: " + t);
         }
@@ -96,27 +98,30 @@ public class AlwaysOnFingerprint implements IXposedHookLoadPackage {
                         }
                     }
             );
+            XposedBridge.log("Hooked KeyguardUpdateMonitor");
         } catch (Throwable t) {
             XposedBridge.log("Failed to hook KeyguardUpdateMonitor: " + t);
         }
 
         try {
-            XposedHelpers.findAndHookConstructor(
+            XposedHelpers.findAndHookMethod(
                     "com.android.systemui.biometrics.UdfpsController",
                     lpparam.classLoader,
-                    XposedHelpers.findClass("android.content.Context", lpparam.classLoader),
+                    "onFingerDown",
+                    long.class, int.class, float.class, float.class, float.class, float.class, float.class, long.class, long.class, boolean.class,
                     new XC_MethodHook() {
                         @Override
-                        protected void afterHookedMethod(MethodHookParam param) throws Throwable {
-                            Context context = (Context) param.args[0];
+                        protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+                            Context context = (Context) XposedHelpers.getObjectField(param.thisObject, "mContext");
                             if (Settings.Secure.getInt(context.getContentResolver(), "screen_off_udfps_enabled", 0) == 1) {
                                 XposedHelpers.setBooleanField(param.thisObject, "mIgnoreRefreshRate", true);
                             }
                         }
                     }
             );
+            XposedBridge.log("Hooked UdfpsController");
         } catch (Throwable t) {
-            XposedBridge.log("Failed to hook UdfpsController constructor: " + t);
+            XposedBridge.log("Failed to hook UdfpsController: " + t);
         }
     }
 }
