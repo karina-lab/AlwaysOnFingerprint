@@ -1,0 +1,15 @@
+[versions]
+agp = "9.1.0"
+kotlin = "2.3.20"
+coreKtx = "1.18.0"
+appcompat = "1.7.1"
+xposedApi = "82"
+
+[libraries]
+androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
+xposed-api = { group = "de.robv.android.xposed", name = "api", version.ref = "xposedApi" }
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
