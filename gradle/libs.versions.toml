@@ -3,12 +3,14 @@ agp = "9.1.0"
 kotlin = "2.3.20"
 coreKtx = "1.18.0"
 appcompat = "1.7.1"
-xposedApi = "82"
+libxposed = "101.0.0"
+libxposed-service = "101.0.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
-xposed-api = { group = "de.robv.android.xposed", name = "api", version.ref = "xposedApi" }
+libxposed-api = { group = "io.github.libxposed", name = "api", version.ref = "libxposed" }
+libxposed-service = { group = "io.github.libxposed", name = "service", version.ref = "libxposed" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
