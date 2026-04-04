@@ -42,11 +42,21 @@ android {
     kotlin {
         jvmToolchain(21)
     }
+
+    buildTypes {
+        release {
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+        }
+    }
+
 }
 
 dependencies {
-    implementation(libs.androidx.appcompat)
-    implementation(libs.androidx.core.ktx)
     compileOnly(libs.libxposed.api)
     implementation(libs.libxposed.service)
 }
