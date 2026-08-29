@@ -74,9 +74,9 @@ class AlwaysOnFingerprint : XposedModule() {
 
     inner class AmbientDisplayHooker : XposedInterface.Hooker {
         override fun intercept(chain: XposedInterface.Chain): Any? {
+
             val instance = chain.thisObject ?: return chain.proceed()
-            val userId = chain.getArg(0) as Int
-            
+
             try {
                 val mContextField = instance.javaClass.getDeclaredField("mContext")
                 mContextField.isAccessible = true
@@ -99,27 +99,22 @@ class AlwaysOnFingerprint : XposedModule() {
         override fun intercept(chain: XposedInterface.Chain): Any? {
             val result = chain.proceed()
             if (result as? Boolean == true) return true
-            
+
             val instance = chain.thisObject ?: return result
-            val userId = 0
-            
             try {
+                val getCurrentUserMethod = instance.javaClass.getDeclaredMethod("getCurrentUser")
+                getCurrentUserMethod.isAccessible = true
+                val userId = getCurrentUserMethod.invoke(instance) as Int
+
                 val mFaceMethod = instance.javaClass.declaredMethods.find { it.name == "getUserFaceAuthenticated" }
                 if (mFaceMethod != null) {
                     mFaceMethod.isAccessible = true
-                    val isFaceAuthenticated = mFaceMethod.invoke(instance, userId) as Boolean
-                    if (isFaceAuthenticated) return result
+                    if (mFaceMethod.invoke(instance, userId) as Boolean) return result
                 }
 
-                val mContextField = instance.javaClass.getDeclaredField("mContext")
-                mContextField.isAccessible = true
-                val context = mContextField.get(instance) as? Context
-
-                if (context != null && Settings.Secure.getInt(context.contentResolver, "screen_off_udfps_enabled", 0) == 1) {
-                    val mDeviceInteractiveField = instance.javaClass.getDeclaredField("mDeviceInteractive")
-                    mDeviceInteractiveField.isAccessible = true
-                    val isInteractive = mDeviceInteractiveField.getBoolean(instance)
-
+                val context = instance.javaClass.getDeclaredField("mContext").apply { isAccessible = true }.get(instance) as Context
+                if (Settings.Secure.getInt(context.contentResolver, "screen_off_udfps_enabled", 0) == 1) {
+                    val isInteractive = instance.javaClass.getDeclaredField("mDeviceInteractive").apply { isAccessible = true }.getBoolean(instance)
                     if (!isInteractive) {
                         return true
                     }
@@ -135,16 +130,31 @@ class AlwaysOnFingerprint : XposedModule() {
             val instance = chain.thisObject
             if (instance != null) {
                 try {
-                    val mContextField = instance.javaClass.getDeclaredField("mContext")
+                    val clazz = instance.javaClass
+                    val mContextField = clazz.getDeclaredField("mContext")
                     mContextField.isAccessible = true
                     val context = mContextField.get(instance) as Context
-                    
-                    if (Settings.Secure.getInt(context.contentResolver, "screen_off_udfps_enabled", 0) == 1) {
-                        val mIgnoreRefreshRateField = instance.javaClass.getDeclaredField("mIgnoreRefreshRate")
-                        mIgnoreRefreshRateField.isAccessible = true
-                        mIgnoreRefreshRateField.setBoolean(instance, true)
+
+                    val isEnabled = Settings.Secure.getInt(context.contentResolver, "screen_off_udfps_enabled", 0) == 1
+
+                    if (isEnabled) {
+                        try {
+                            val mIgnoreRefreshRateField = clazz.getDeclaredField("mIgnoreRefreshRate")
+                            mIgnoreRefreshRateField.isAccessible = true
+                            mIgnoreRefreshRateField.setBoolean(instance, true)
+                        } catch (e: Exception) { }
+
+                        val powerManager = context.getSystemService(Context.POWER_SERVICE) as android.os.PowerManager
+                        if (!powerManager.isInteractive) {
+                            try {
+                                val mIsAodInterruptActiveField = clazz.getDeclaredField("mIsAodInterruptActive")
+                                mIsAodInterruptActiveField.isAccessible = true
+                                mIsAodInterruptActiveField.setBoolean(instance, true)
+                            } catch (e: Exception) { }
+                        }
                     }
                 } catch (e: Exception) {
+                    log(Log.ERROR, TAG, "Failed to apply UdfpsController hooks", e)
                 }
             }
             return chain.proceed()

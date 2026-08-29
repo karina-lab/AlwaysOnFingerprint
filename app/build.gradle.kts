@@ -4,12 +4,12 @@ plugins {
 
 android {
     namespace = "org.klab.alwaysonfps"
-    compileSdk = 36
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "org.klab.alwaysonfps"
         minSdk = 36
-        targetSdk = 36
+        targetSdk = 37
 
         versionCode = project.property("versionCode").toString().toInt()
         versionName = project.property("versionName").toString()
